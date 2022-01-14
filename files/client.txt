@@ -1,0 +1,208 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#pragma comment(lib, "Ws2_32.lib")
+
+#include <winsock2.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#pragma warning(disable:4996)
+#define BUF_SIZE 1024
+
+/*
+Requirements: ws2_32.lib library (VS05: Project -> Properties -> Linker -> Command Line -> [ws2_32.lib])
+ */
+
+
+ /*
+ int wmess(int fd, char* buff) {
+	 int bread, btotal = 0;
+	 char buff2[BUF_SIZE];
+	 //for(int i=0;i<buff_size;i++) buff2[i]='\0';
+	 memset(buff2, 0, BUF_SIZE);
+	 strcpy(buff2, buff);
+	 while (btotal < BUF_SIZE) {
+		 bread = write(fd, buff2 + btotal, BUF_SIZE - btotal);
+		 btotal += bread;
+	 }
+	 return btotal;
+ }
+ */
+int rmess(SOCKET* SSocket, char* buff) {
+	int bread, btotal = 0;
+	while (btotal < BUF_SIZE) {
+		bread = recv(*SSocket, buff + btotal, sizeof(buff) - btotal, 0);
+		//bread = read(fd, buff + btotal, BUF_SIZE - btotal);
+		btotal += bread;
+	}
+	return btotal;
+}
+
+
+int is_end(char* str) {
+	if (str[0] == 'E' &&
+		str[1] == 'O' &&
+		str[2] == 'F')
+		return 1;
+	else return 0;
+}
+
+void file_copy(char *from, char *to);
+int file_compare(char *f1, char *f2);
+
+
+int main(int argc, char* argv[])
+{
+	WORD WRequiredVersion;
+	WSADATA WData;
+	SOCKET SSocket;
+	int nConnect;
+	int nBytes;
+	struct sockaddr_in stServerAddr;
+	struct hostent* lpstServerEnt;
+	char buff[BUF_SIZE];
+	char status;
+
+	char file1_name[] = "file1.txt";
+	char file2_name[] = "file2.txt";
+	char file3_name[] = "file3.txt";
+
+	if (argc != 3)
+	{
+		fprintf(stderr, "Usage: %s server_name port_number\n", argv[0]);
+		exit(1);
+	}
+
+	/* initialize winsock */
+	WRequiredVersion = MAKEWORD(2, 0);
+	if (WSAStartup(WRequiredVersion, &WData) != 0) {
+		fprintf(stderr, "WSAStartup failed!");
+		exit(1);
+	}
+
+	/* look up server's IP address */
+	lpstServerEnt = gethostbyname(argv[1]);
+	if (!lpstServerEnt)
+	{
+		fprintf(stderr, "%s: Can't get the server's IP address.\n", argv[0]);
+		exit(1);
+	}
+	/* create a socket */
+	SSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	/* server info */
+	memset(&stServerAddr, 0, sizeof(struct sockaddr));
+	stServerAddr.sin_family = AF_INET;
+	memcpy(&stServerAddr.sin_addr.s_addr, lpstServerEnt->h_addr, lpstServerEnt->h_length);
+	stServerAddr.sin_port = htons(atoi(argv[2]));
+
+	/* connect to the server */
+	nConnect = connect(SSocket, (struct sockaddr*)&stServerAddr, sizeof(struct sockaddr));
+	if (nConnect < 0)
+	{
+		fprintf(stderr, "%s: Can't connect to the server (%s:%i).\n", argv[0], argv[1], atoi(argv[2]));
+		exit(1);
+	}
+
+	/* connection is now established; read from socket */
+	nBytes = recv(SSocket, buff, sizeof(buff), 0);
+	buff[nBytes] = '\x0';
+	printf("Data from SERVER [%s]:\t%s", argv[1], buff);
+
+	FILE *file1_fd;
+	status = 'r';
+
+	while (1) //petla glowna
+	{
+		send(SSocket, &status, sizeof(status), 0);
+		memset(buff, 0, sizeof(buff));
+
+		file1_fd = fopen(file1_name, "w");
+		while(1)
+		{
+			memset(buff, 0, sizeof(buff));
+			//rmess(&SSocket, buff);
+			recv(SSocket, buff, sizeof(buff), 0);
+			printf("Data from SERVER [%s]:\t%s", argv[1], buff);
+
+			if (is_end(buff)) {
+				fputs("\n", file1_fd);
+				break;
+			}
+			else {
+				fputs(buff, file1_fd);
+			}
+			//memset(buff, 0, sizeof(buff));
+		}
+		fclose(file1_fd);
+
+		if (!file_compare(file1_name, file2_name)) {
+			//to co na serve != to co byc moze na serv
+			// ===> reload plikow
+			status = 'r';
+		} 
+		else if (!file_compare(file2_name, file3_name)) {
+			//to co byc moze na serv != nasz workspace
+			// ===> uzytkownik chce zapisac
+			status = 'w';
+		}
+		else {
+			//brak zmian, stan spojny z rzeczywistoscia
+			status = 'k';
+		}
+
+		if (status == 'r') {
+			file_copy(file1_name, file2_name);
+			file_copy(file1_name, file3_name);
+		}
+
+		Sleep(3000);
+		//break;//usunac
+	}
+	closesocket(SSocket);
+
+	/* terminate use of the winsock */
+	WSACleanup();
+
+	return 0;
+}
+
+void file_copy(char* from, char* to)
+{
+	FILE *fd_from, *fd_to;
+	char c;
+
+	fd_from = fopen(from, "r");
+	fd_to = fopen(to, "w");
+
+	c = fgetc(fd_from);
+	while (c != EOF) {
+		fputc(c, fd_to);
+		c = fgetc(fd_from);
+	}
+
+	fclose(fd_from);
+	fclose(fd_to);
+}
+
+int file_compare(char *f1, char *f2)
+{
+	FILE *fd_f1, *fd_f2;
+	char c1,c2;
+
+	fd_f1 = fopen(f1, "r");
+	fd_f2 = fopen(f2, "r");
+
+	
+	do{
+		c1 = fgetc(fd_f1);
+		c2 = fgetc(fd_f2);
+
+		if (c1 != c2) {
+			fclose(fd_f1);
+			fclose(fd_f2);
+			return 0;
+		}
+	} while (c1 != EOF && c2 != EOF);
+	return 1;
+}

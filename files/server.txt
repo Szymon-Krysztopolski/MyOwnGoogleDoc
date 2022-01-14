@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <time.h>
+
+int buff_size=512;
+
+void childend(int signo) {wait (NULL); }
+
+int wmess(int fd, char* buff) {
+	int bread, btotal = 0;
+	char buff2[buff_size];
+	//for(int i=0;i<buff_size;i++) buff2[i]='\0';
+	memset(buff2,0,buff_size);
+	strcpy(buff2, buff);
+	while (btotal < buff_size) {
+    	bread = write(fd, buff2 + btotal, buff_size - btotal);
+    	btotal += bread;
+	}
+	return btotal;
+}
+
+int rmess(int fd, char* buff) {
+	int bread, btotal = 0;
+	while (btotal < buff_size) {
+    	bread = read(fd, buff + btotal, buff_size - btotal);
+    	btotal += bread;
+	}
+	return btotal;
+}
+
+
+int main(int argc, char **argv)
+{
+    srand(time(NULL));
+    socklen_t slt;
+    int sfd, cfd, on=1;
+    int port=1234;
+    struct sockaddr_in saddr, caddr;
+    char buff[buff_size];
+    
+    FILE *file;
+    int time_wait=100000;
+    
+    signal(SIGCHLD, childend);
+    saddr.sin_family=AF_INET;
+    saddr.sin_addr.s_addr=INADDR_ANY;
+    saddr.sin_port=htons(port);
+    sfd=socket(AF_INET, SOCK_STREAM, 0);
+    
+    setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on));
+    bind(sfd, (struct sockaddr*)&saddr, sizeof(saddr));
+    listen(sfd,10);
+    
+    while(1)
+    {
+   	 slt=sizeof(caddr);
+   	 cfd=accept(sfd,(struct sockaddr*)&caddr, &slt);
+   	 
+   	 if(!fork()){
+   		 close(sfd);
+   		 printf("new connection: %s\n", inet_ntoa((struct in_addr)caddr.sin_addr));
+   		 //sleep(1+rand()%5);
+   		 wmess(cfd,"myHello World!\n");
+   		 while(1) //petla glowna
+   		 {
+   			 memset(buff,0,buff_size);
+   			 read(cfd,buff,sizeof(buff));
+   			 printf("b: %s\n",buff);
+   			 if(buff[0]=='\x0') {
+   				 printf("user disconnected\n");
+   				 break;
+   			 }
+   			 
+   			 printf("start sending file\n");
+   			 file=fopen("global_file.txt","r");
+   			 while(fgets(buff,buff_size,file) != NULL)
+   			 {
+   				 printf("The line is: %s",buff);
+   				 wmess(cfd,buff);
+   				 usleep(time_wait);
+   			 }
+   		 
+   			 wmess(cfd,"EOF\n");
+   			 usleep(time_wait);
+   			 fclose(file);
+   		 }
+   		 close(cfd);
+   		 exit(EXIT_SUCCESS);
+   	 }
+   	 close(cfd);
+    }
+    close(sfd);
+    return EXIT_SUCCESS;
+}
