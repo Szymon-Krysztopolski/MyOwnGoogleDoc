@@ -18,7 +18,7 @@ void childend(int signo) {wait (NULL); }
 int wmess(int fd, char* buff) {
 	int bread, btotal = 0;
 	char buff2[buff_size];
-	//for(int i=0;i<buff_size;i++) buff2[i]='\0';
+
 	memset(buff2,0,buff_size);
 	strcpy(buff2, buff);
 	while (btotal < buff_size) {
@@ -37,6 +37,14 @@ int rmess(int fd, char* buff) {
 	return btotal;
 }
 
+int is_end(char *str){
+    if(str[0] == 'E' &&
+    str[1] == 'O' &&
+    str[2] == 'F')
+   	 return 1;
+    else return 0;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -49,6 +57,7 @@ int main(int argc, char **argv)
     
     FILE *file;
     int time_wait=100000;
+    char status;
     
     signal(SIGCHLD, childend);
     saddr.sin_family=AF_INET;
@@ -75,7 +84,8 @@ int main(int argc, char **argv)
    			 memset(buff,0,buff_size);
    			 read(cfd,buff,sizeof(buff));
    			 printf("b: %s\n",buff);
-   			 if(buff[0]=='\x0') {
+   			 status=buff[0];
+   			 if(status=='\x0') {
    				 printf("user disconnected\n");
    				 break;
    			 }
@@ -88,10 +98,26 @@ int main(int argc, char **argv)
    				 wmess(cfd,buff);
    				 usleep(time_wait);
    			 }
-   		 
+   			 
    			 wmess(cfd,"EOF\n");
    			 usleep(time_wait);
    			 fclose(file);
+   			 
+   			 if(status=='w'){
+   				 file=fopen("global_file.txt","w");
+   				 while(1){
+   					 memset(buff,0,buff_size);
+   					 read(cfd,buff,sizeof(buff));
+   					 
+   					 if(is_end(buff)){
+   						 //fputs("\n",file);
+   						 break;
+   					 } else {
+   						 fputs(buff,file);
+   					 }
+   				 }
+   				 fclose(file);
+   			 }
    		 }
    		 close(cfd);
    		 exit(EXIT_SUCCESS);

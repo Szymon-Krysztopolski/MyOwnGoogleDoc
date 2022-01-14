@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 	char file1_name[] = "file1.txt";
 	char file2_name[] = "file2.txt";
 	char file3_name[] = "file3.txt";
+	char eof_mess[] = "EOF\n";
 
 	if (argc != 3)
 	{
@@ -106,7 +107,7 @@ int main(int argc, char* argv[])
 
 	/* connection is now established; read from socket */
 	nBytes = recv(SSocket, buff, sizeof(buff), 0);
-	buff[nBytes] = '\x0';
+	//buff[nBytes] = '\x0';
 	printf("Data from SERVER [%s]:\t%s", argv[1], buff);
 
 	FILE *file1_fd;
@@ -114,6 +115,21 @@ int main(int argc, char* argv[])
 
 	while (1) //petla glowna
 	{
+		if (!file_compare(file1_name, file2_name)) {
+			//to co na serve != to co byc moze na serv
+			// ===> reload plikow
+			status = 'r';
+		}
+		else if (!file_compare(file2_name, file3_name)) {
+			//to co byc moze na serv != nasz workspace
+			// ===> uzytkownik chce zapisac
+			status = 'w';
+		}
+		else {
+			//brak zmian, stan spojny z rzeczywistoscia
+			status = 'k';
+		}
+
 		send(SSocket, &status, sizeof(status), 0);
 		memset(buff, 0, sizeof(buff));
 
@@ -126,7 +142,7 @@ int main(int argc, char* argv[])
 			printf("Data from SERVER [%s]:\t%s", argv[1], buff);
 
 			if (is_end(buff)) {
-				fputs("\n", file1_fd);
+				//fputs("\n", file1_fd);
 				break;
 			}
 			else {
@@ -136,28 +152,25 @@ int main(int argc, char* argv[])
 		}
 		fclose(file1_fd);
 
-		if (!file_compare(file1_name, file2_name)) {
-			//to co na serve != to co byc moze na serv
-			// ===> reload plikow
-			status = 'r';
-		} 
-		else if (!file_compare(file2_name, file3_name)) {
-			//to co byc moze na serv != nasz workspace
-			// ===> uzytkownik chce zapisac
-			status = 'w';
-		}
-		else {
-			//brak zmian, stan spojny z rzeczywistoscia
-			status = 'k';
-		}
-
 		if (status == 'r') {
 			file_copy(file1_name, file2_name);
 			file_copy(file1_name, file3_name);
 		}
+		else if (status == 'w') {
+			file1_fd = fopen(file1_name, "r");
+
+			file_copy(file3_name, file2_name);
+			file_copy(file3_name, file1_name);
+
+			while(fgets(buff,sizeof(buff),file1_fd) != NULL) {
+				send(SSocket, buff, sizeof(buff), 0);
+			}
+
+			send(SSocket, eof_mess, sizeof(eof_mess), 0);
+			fclose(file1_fd);
+		}
 
 		Sleep(3000);
-		//break;//usunac
 	}
 	closesocket(SSocket);
 
