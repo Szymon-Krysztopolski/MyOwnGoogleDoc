@@ -66,6 +66,8 @@ int main(int argc, char **argv)
     setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on));
     bind(sfd, (struct sockaddr*)&saddr, sizeof(saddr));
     listen(sfd,10);
+	
+	FILE *tmp = fopen("global_file.txt", "w");fclose(tmp);
     
     while(1)
     {
@@ -92,7 +94,7 @@ int main(int argc, char **argv)
    			 {
    				 printf("The line is: %s",buff);
    				 wmess(cfd,buff);
-   				 usleep(time_wait);
+   				 usleep(time_wait); //czasem server gubi pakiety i wysyla dziwne wiadomosci, usleep rozwiazuje te problemy
    			 }
    			 
    			 wmess(cfd,"EOF\n");

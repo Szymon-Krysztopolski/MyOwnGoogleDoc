@@ -45,14 +45,12 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	/* initialize winsock */
 	WRequiredVersion = MAKEWORD(2, 0);
 	if (WSAStartup(WRequiredVersion, &WData) != 0) {
 		fprintf(stderr, "WSAStartup failed!");
 		exit(1);
 	}
 
-	/* look up server's IP address */
 	lpstServerEnt = gethostbyname(argv[1]);
 	if (!lpstServerEnt)
 	{
@@ -62,13 +60,11 @@ int main(int argc, char* argv[])
 	/* create a socket */
 	SSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	/* server info */
 	memset(&stServerAddr, 0, sizeof(struct sockaddr));
 	stServerAddr.sin_family = AF_INET;
 	memcpy(&stServerAddr.sin_addr.s_addr, lpstServerEnt->h_addr, lpstServerEnt->h_length);
 	stServerAddr.sin_port = htons(atoi(argv[2]));
 
-	/* connect to the server */
 	nConnect = connect(SSocket, (struct sockaddr*)&stServerAddr, sizeof(struct sockaddr));
 	if (nConnect < 0)
 	{
