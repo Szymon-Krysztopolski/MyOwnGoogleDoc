@@ -25,6 +25,8 @@ ___
 ## Instrukcja obslugi
 ___
 
+Korzystanie z naszej aplikacji jest możliwe z wykorzystaniem edytora tekstowego umożliwiającego automatyczne skanowanie zmian w pliku tekstowym. Takim edytorem jest chociażby Notepad++ (poniżej instukcja). Zapis swoich zmian należy zrobić ręcznie za pomocą znanego Ctrl+S.
+
 W notepadzie należy uruchomić Document Monitor poprzez kliknięcie "Start Monitor" w zakładce z pluginami. W Notepadzie także należy przejść do zakładki "Settings" i przejść do "MISC.". Tutaj trzeba zaznaczyć "Update Silently" oraz "Enable for all opened files". 
 
 ### Instalacja pluginu do programu Notepad++
