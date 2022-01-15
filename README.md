@@ -2,7 +2,7 @@
 ## Wstęp
 ___
 
-Aplikacja jest aplikacją sieciową działającą w sieci lokalnej. Jest ona stosowana do obsługi pliku tekstowego współbieżnie przez wielu użytkowników. W domyśle server jest włączony na systemie Linux, a klienci są użytkownikami systemu Windows. Dla uproszczenia użyliśmy jednego pliku globalnego. 
+Aplikacja jest aplikacją sieciową działającą w sieci lokalnej. Jest ona stosowana do obsługi pliku tekstowego współbieżnie przez wielu użytkowników. W domyśle serwer jest włączony na systemie Linux i obsługuje klientów za pomocą podprocesów. Klienci natomiast są użytkownikami systemu Windows i korzystają z socketów do komunikacji. Dla uproszczenia użyliśmy jednego pliku globalnego.
 
 ## Opis zastosowanych metod
 ___
