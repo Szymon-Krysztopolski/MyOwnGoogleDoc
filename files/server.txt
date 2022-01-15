@@ -11,30 +11,28 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-int buff_size=512;
+int buff_size=1024;
 
 void childend(int signo) {wait (NULL); }
 
 int wmess(int fd, char* buff) {
-	int bread, btotal = 0;
-	char buff2[buff_size];
+   	 int bread, btotal = 0;
 
-	memset(buff2,0,buff_size);
-	strcpy(buff2, buff);
-	while (btotal < buff_size) {
-    	bread = write(fd, buff2 + btotal, buff_size - btotal);
-    	btotal += bread;
-	}
-	return btotal;
+  	 while (btotal < buff_size) {
+     	 bread = write(fd, buff + btotal, buff_size - btotal);
+   		 btotal += bread;
+  	 }
+   	 return btotal;
 }
 
 int rmess(int fd, char* buff) {
-	int bread, btotal = 0;
-	while (btotal < buff_size) {
-    	bread = read(fd, buff + btotal, buff_size - btotal);
-    	btotal += bread;
-	}
-	return btotal;
+   	 int bread, btotal = 0;
+   	 
+  	 while (btotal < buff_size) {
+			 bread = read(fd, buff + btotal, buff_size - btotal);
+  		 btotal += bread;
+  	 }
+  	 return btotal;
 }
 
 int is_end(char *str){
@@ -77,13 +75,11 @@ int main(int argc, char **argv)
    	 if(!fork()){
    		 close(sfd);
    		 printf("new connection: %s\n", inet_ntoa((struct in_addr)caddr.sin_addr));
-   		 //sleep(1+rand()%5);
-   		 wmess(cfd,"myHello World!\n");
    		 while(1) //petla glowna
    		 {
    			 memset(buff,0,buff_size);
    			 read(cfd,buff,sizeof(buff));
-   			 printf("b: %s\n",buff);
+   			 printf("\nb: %s\n",buff);
    			 status=buff[0];
    			 if(status=='\x0') {
    				 printf("user disconnected\n");
@@ -107,7 +103,7 @@ int main(int argc, char **argv)
    				 file=fopen("global_file.txt","w");
    				 while(1){
    					 memset(buff,0,buff_size);
-   					 read(cfd,buff,sizeof(buff));
+   					 rmess(cfd,buff);
    					 
    					 if(is_end(buff)){
    						 //fputs("\n",file);

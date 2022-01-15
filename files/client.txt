@@ -6,37 +6,8 @@
 #include <stdio.h>
 #include <time.h>
 
-#pragma warning(disable:4996)
+#pragma warning(disable:4996) //potrzebne, bez tej linii funkcja fopen uniemozliwia kompilacje
 #define BUF_SIZE 1024
-
-/*
-Requirements: ws2_32.lib library (VS05: Project -> Properties -> Linker -> Command Line -> [ws2_32.lib])
- */
-
-
- /*
- int wmess(int fd, char* buff) {
-	 int bread, btotal = 0;
-	 char buff2[BUF_SIZE];
-	 //for(int i=0;i<buff_size;i++) buff2[i]='\0';
-	 memset(buff2, 0, BUF_SIZE);
-	 strcpy(buff2, buff);
-	 while (btotal < BUF_SIZE) {
-		 bread = write(fd, buff2 + btotal, BUF_SIZE - btotal);
-		 btotal += bread;
-	 }
-	 return btotal;
- }
- */
-int rmess(SOCKET* SSocket, char* buff) {
-	int bread, btotal = 0;
-	while (btotal < BUF_SIZE) {
-		bread = recv(*SSocket, buff + btotal, sizeof(buff) - btotal, 0);
-		//bread = read(fd, buff + btotal, BUF_SIZE - btotal);
-		btotal += bread;
-	}
-	return btotal;
-}
 
 
 int is_end(char* str) {
@@ -105,17 +76,18 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	/* connection is now established; read from socket */
-	nBytes = recv(SSocket, buff, sizeof(buff), 0);
-	//buff[nBytes] = '\x0';
-	printf("Data from SERVER [%s]:\t%s", argv[1], buff);
-
 	FILE *file1_fd;
 	status = 'r';
+	
+	//tworzenie potrzebnych plikow - opis w readme
+	FILE *tmp1 = fopen(file1_name, "w");fclose(tmp1);
+	FILE* tmp2 = fopen(file2_name, "w");fclose(tmp2);
+	FILE* tmp3 = fopen(file3_name, "w");fclose(tmp3);
+
 
 	while (1) //petla glowna
 	{
-		if (!file_compare(file1_name, file2_name)) {
+		if(!file_compare(file1_name, file2_name)) {
 			//to co na serve != to co byc moze na serv
 			// ===> reload plikow
 			status = 'r';
@@ -130,8 +102,8 @@ int main(int argc, char* argv[])
 			status = 'k';
 		}
 
-		send(SSocket, &status, sizeof(status), 0);
 		memset(buff, 0, sizeof(buff));
+		send(SSocket, &status, sizeof(status), 0);
 
 		file1_fd = fopen(file1_name, "w");
 		while(1)
@@ -142,13 +114,11 @@ int main(int argc, char* argv[])
 			printf("Data from SERVER [%s]:\t%s", argv[1], buff);
 
 			if (is_end(buff)) {
-				//fputs("\n", file1_fd);
 				break;
 			}
 			else {
 				fputs(buff, file1_fd);
 			}
-			//memset(buff, 0, sizeof(buff));
 		}
 		fclose(file1_fd);
 
@@ -166,15 +136,15 @@ int main(int argc, char* argv[])
 				send(SSocket, buff, sizeof(buff), 0);
 			}
 
-			send(SSocket, eof_mess, sizeof(eof_mess), 0);
+			memset(buff, 0, sizeof(buff));
+			memcpy(buff, eof_mess, sizeof(eof_mess));
+			send(SSocket, buff, sizeof(buff), 0);
 			fclose(file1_fd);
 		}
 
 		Sleep(3000);
 	}
 	closesocket(SSocket);
-
-	/* terminate use of the winsock */
 	WSACleanup();
 
 	return 0;
