@@ -33,6 +33,8 @@ Należy uruchomić program Notepad++, przejść do zakładki "Plugins", następn
 
 Zalecane jest pobranie wersji Notepada++ 32-bit np Notepad++ v8.1.9.3, który ma już zainstalowany ten plugin. https://notepad-plus-plus.org/downloads/v8.1.9.3/
 
+![Alt text](https://github.com/Szymon-Krysztopolski/MyOwnGoogleDoc/blob/main/1.png "Optional Title")
+
 ## Potencjalne drogi rozwoju aplikacji
 ___
 
