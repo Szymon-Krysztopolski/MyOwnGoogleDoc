@@ -1,5 +1,5 @@
 # myOWNgoogleDOC
-## Wstep
+## Wstęp
 ___
 
 Aplikacja jest aplikacją sieciową działającą w sieci lokalnej. Jest ona stosowana do obsługi pliku tekstowego współbieżnie przez wielu użytkowników. W domyśle server jest włączony na systemie Linux, a klienci są użytkownikami systemu Windows. Dla uproszczenia użyliśmy jednego pliku globalnego. 
@@ -25,11 +25,14 @@ ___
 ## Instrukcja obslugi
 ___
 
-rychu
+W notepadzie należy uruchomić Document Monitor poprzez kliknięcie "Start Monitor" w zakładce z pluginami. W Notepadzie także należy przejść do zakładki "Settings" i przejść do "MISC.". Tutaj trzeba zaznaczyć "Update Silently" oraz "Enable for all opened files". 
 
-### Instalacja pluginu Notepad++
+### Instalacja pluginu do programu Notepad++
 
-rychu
+Należy uruchomić program Notepad++, przejść do zakładki "Plugins", następnie "Plugins Admin". Jeżeli jest już zainstalowany plugin Document Monitor to należy go wybrać. Jeśli nie - należy go pobrać ze strony: https://sourceforge.net/projects/npp-plugins/files/DocMonitor/ .
+
+
+Zalecane jest pobranie wersji Notepada++ 32-bit np Notepad++ v8.1.9.3, który ma już zainstalowany ten plugin. https://notepad-plus-plus.org/downloads/v8.1.9.3/
 
 ## Potencjalne drogi rozwoju aplikacji
 ___
