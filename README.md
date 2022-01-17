@@ -2,7 +2,7 @@
 ## Wstęp
 ___
 
-Aplikacja jest aplikacją sieciową działającą w sieci lokalnej. Jest ona stosowana do obsługi pliku tekstowego współbieżnie przez wielu użytkowników. W domyśle server jest włączony na systemie Linux, a klienci są użytkownikami systemu Windows. Dla uproszczenia użyliśmy jednego pliku globalnego. 
+Aplikacja jest aplikacją sieciową działającą w sieci lokalnej. Jest ona stosowana do obsługi pliku tekstowego współbieżnie przez wielu użytkowników. W domyśle serwer jest włączony na systemie Linux i obsługuje klientów za pomocą podprocesów. Klienci natomiast są użytkownikami systemu Windows i korzystają z socketów do komunikacji. Dla uproszczenia użyliśmy jednego pliku globalnego.
 
 ## Opis zastosowanych metod
 ___
@@ -24,6 +24,8 @@ ___
 
 ## Instrukcja obslugi
 ___
+
+Korzystanie z naszej aplikacji jest możliwe z wykorzystaniem edytora tekstowego umożliwiającego automatyczne skanowanie zmian w pliku tekstowym. Takim edytorem jest chociażby Notepad++ (poniżej instukcja). Zapis swoich zmian należy zrobić ręcznie za pomocą znanego Ctrl+S.
 
 W notepadzie należy uruchomić Document Monitor poprzez kliknięcie "Start Monitor" w zakładce z pluginami. W Notepadzie także należy przejść do zakładki "Settings" i przejść do "MISC.". Tutaj trzeba zaznaczyć "Update Silently" oraz "Enable for all opened files". 
 
